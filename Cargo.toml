@@ -1,5 +1,5 @@
 [package]
-name = "engine2ds"
+name = "engine2d"
 version = "0.1.0"
 authors = ["antonioramos"]
 edition = "2018"
