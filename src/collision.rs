@@ -72,6 +72,51 @@ pub fn rect_touching(r1: Rect, r2: Rect) -> bool {
         r1.y <= r2.y+r2.h as i32 &&
         r2.y <= r1.y+r1.h as i32
 }
+pub fn gameLayout(fb: &mut [u8], x: usize, y: usize, l: usize, c: Color) {
+    //x screen width and y screen heigth
+    //horizontal
+    line(fb, (0, y / 3), (x, y / 3), c);
+    line(fb, (0, 2 * y / 3), (x, 2 * y / 3), c);
+    //vertical
+    line(fb, (x / 3, 0), (x / 3, y), c);
+    line(fb, (2 * (x / 3), 0), (2 * (x / 3), y), c);
+
+    /*
+    //original version
+    //vertical lines
+    line(fb, (x + l / 3, y), (x + l / 3, y + l), c);
+    line(fb, (x + l / 3 * 2, y), (x + l / 3 * 2, y + l), c);
+    //horizontal lines
+    line(fb, (x, y + l / 3), (x + l, y + l / 3), c);
+    line(fb, (x, y + l / 3 * 2), (x + l, y + l / 3 * 2), c);*/
+}
+pub fn cross(fb: &mut [u8], x: usize, y: usize, l: usize, c: Color) {
+    line(fb, (x, y), (x + l, y + l), c);
+    line(fb, (x + l, y), (x, y + l), c);
+}
+pub fn circle(frame: &mut [u8], circle_x: f32, circle_y: f32) {
+    for (i, pixel) in frame.chunks_exact_mut(4).enumerate() {
+        let x = (i % WIDTH as usize) as i16;
+        let y = (i / WIDTH as usize) as i16;
+
+        //formula for all the points from a circle
+        //300 are the circles x and y location, so maybe that should be a variable
+        //https://github.com/parasyte/pixels/blob/master/examples/minimal-fltk/src/main.rs
+        //https://math.stackexchange.com/questions/198764/how-to-know-if-a-point-is-inside-a-circle
+        let d = {
+            let xd = x as i32 - circle_x as i32;
+            let yd = y as i32 - circle_y as i32;
+            ((xd.pow(2) + yd.pow(2)) as f64).sqrt().powi(2)
+        };
+        let inside_of_circle = d < (CIRCLE_RADIUS as f64).powi(2);
+
+        let rgba = [0xac, 0x00, 0xe6, 0xff];
+        if inside_of_circle {
+            pixel.copy_from_slice(&rgba);
+        }
+    }
+}
+
 fn hline(fb: &mut [u8], x0: usize, x1: usize, y: usize, c: Color) {
     assert!(y < HEIGHT);
     assert!(x0 <= x1);
