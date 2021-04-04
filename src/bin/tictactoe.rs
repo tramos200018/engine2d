@@ -40,13 +40,16 @@ type Color = [u8; DEPTH];
 
 const CLEAR_COL: Color = [32, 32, 64, 255];
 const WALL_COL: Color = [200, 200, 200, 255];
-const PLAYER_COL: Color = [255, 128, 128, 255];
-const NEXT_COL: Color = [255, 0, 0, 255];
-const ARROW_COL: Color = [0, 255, 0, 255];
+
+
 
 const EMPTY: usize = 0;
 const CIRCLE: usize = 1;
 const CROSS: usize = 2;
+
+const WIN: usize = 0;
+const LOSS: usize = 1;
+const TIE: usize = 2;
 
 struct Level {
     gamemap: Vec<Wall>,
@@ -69,6 +72,7 @@ pub struct GameState {
     mode: Mode,
     model: Vec<Vec<usize>>,
     mouse_down: bool,
+    status: usize,
 }
 // seconds per frame
 const DT: f64 = 1.0 / 60.0;
@@ -77,8 +81,7 @@ const WIDTH: usize = 700;
 const HEIGHT: usize = 550;
 const DEPTH: usize = 4;
 
-const GRID_X: usize = 195;
-const GRID_Y: usize = 150;
+
 const GRID_LENGTH: usize = 250;
 
 const CROSS_SIZE: usize = 75;
@@ -91,28 +94,31 @@ enum Mode {
 }
 
 fn main() {
-    let mut rsrc = Resources::new();
-    let startscreen_tex = rsrc.load_texture(Path::new("content/start.png"));
+    let rsrc = Resources::new();
+    let startscreen_tex = rsrc.load_texture(Path::new("content/startTic.png"));
     let confetti = rsrc.load_texture(Path::new("content/confetti2.jpeg"));
     let confetti2 = rsrc.load_texture(Path::new("content/confetti1.jpeg"));
+
+    let win_tex = rsrc.load_texture(Path::new("content/win.png"));
+    let loss_tex = rsrc.load_texture(Path::new("content/loss.png"));
+    let tie_tex = rsrc.load_texture(Path::new("content/tie.png"));
     
     
     
 
-    let tex = Rc::new(Texture::with_file(Path::new("content/king.png")));
     let frame1 = Rect {
         x: 0,
-        y: 16,
-        w: 50,
-        h: 50,
+        y: 200,
+        w: 700,
+        h: 100,
     };
     let frame2 = Rect {
-        x: 16,
-        y: 16,
-        w: 50,
-        h: 50,
+        x: 0,
+        y: 100,
+        w: 700,
+        h: 100,
     };
-    let mut anim = Rc::new(Animation::new(vec![frame1, frame2]));
+    let anim = Rc::new(Animation::new(vec![frame1, frame2]));
 
     let walls1: Vec<Wall> = vec![
         //top wall
@@ -229,6 +235,7 @@ fn main() {
             vec![EMPTY, EMPTY, EMPTY],
         ],
         mouse_down: false,
+        status: TIE,
     };
 
     // How many frames have we simulated?
@@ -245,12 +252,15 @@ fn main() {
         vec![EMPTY, EMPTY, EMPTY]
     ];*/
 
+    
     event_loop.run(move |event, _, control_flow| {
         // Draw the current frame
         if let Event::RedrawRequested(_) = event {
             let fb = pixels.get_frame();
 
             engine2d::collision::clear(fb, CLEAR_COL);
+
+            
 
             match state.mode {
                 Mode::TitleScreen => {
@@ -305,15 +315,49 @@ fn main() {
 
                     }*/
 
-                    let mut screen =
-                        Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0));
+                    
                 }
                 Mode::EndGame => {
 
                     let mut screen = Screen::wrap(fb, WIDTH, HEIGHT, DEPTH, Vec2i(0, 0));
 
                     for s in state.sprites.iter() {
+                        
                         screen.draw_sprite(s);
+                    }
+                    if (state.status == WIN){
+                        Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
+                            &win_tex,
+                            Rect {
+                                x: 0,
+                                y: 0,
+                                w: 700,
+                                h: 550,
+                            },
+                            Vec2i(0, 0),
+                        )
+                    } else if (state.status == LOSS){
+                        Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
+                            &loss_tex,
+                            Rect {
+                                x: 0,
+                                y: 0,
+                                w: 700,
+                                h: 550,
+                            },
+                            Vec2i(0, 0),
+                        )
+                    }else if (state.status == TIE){
+                        Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
+                            &tie_tex,
+                            Rect {
+                                x: 0,
+                                y: 0,
+                                w: 700,
+                                h: 550,
+                            },
+                            Vec2i(0, 0),
+                        )
                     }
                 }
             }
@@ -365,7 +409,7 @@ fn update_game(
     frame: usize,
     pixels: &Pixels<Window>,
 ) {
-    let mut level_index: usize = state.current_level;
+    let level_index: usize = state.current_level;
     let mut input_x = 0.0;
     let mut input_y = 0.0;
     let mouse_held = input.mouse_held(0);
@@ -377,13 +421,13 @@ fn update_game(
             if input.key_held(VirtualKeyCode::Return) {
                 state.mode = Mode::GamePlay;
             } else if input.key_held(VirtualKeyCode::L){
-                loadGame(state);
+                load_game(state);
                 state.mode = Mode::GamePlay;
             }
         }
         Mode::GamePlay => {
             if input.key_held(VirtualKeyCode::S){
-                saveGame(state);
+                save_game(state);
             }
 
 
@@ -391,9 +435,7 @@ fn update_game(
             if mouse_rel{
                 if let Some((mouse_x, mouse_y)) = input.mouse().and_then(|mp| pixels.window_pos_to_pixel(mp).ok()) {
                         input_x = (mouse_x / (WIDTH/3)) as f32;
-                        //println!("{}", circle_x);
                         input_y = (mouse_y/ (HEIGHT/3)) as f32;
-                        //println!("{}", circle_y);
                         if state.player == CIRCLE{
                             if state.model[input_x as usize][input_y as usize] == EMPTY{
                                 state.model[input_x as usize][input_y as usize] = state.player;
@@ -405,14 +447,13 @@ fn update_game(
                 }
             }
             if state.player == CROSS{
-                let mut number1: usize = thread_rng().gen_range(0, 3);
-                let mut number2: usize = thread_rng().gen_range(0, 3);
+                let number1: usize = thread_rng().gen_range(0, 3);
+                let number2: usize = thread_rng().gen_range(0, 3);
                 if state.model[number1][number2] == EMPTY{
                     state.model[number1][number2] = state.player;
                     state.player = CIRCLE;
                     
                 }
-                println!("{}, {}", number1, number2);
 
             }
 
@@ -440,7 +481,14 @@ fn update_game(
             */
 
             
-            if gameOverCircle(state) || gameOverCross(state) || tie(state){
+            if game_over_circle(state){
+                state.status = WIN;
+                state.mode = Mode::EndGame;
+            }else if game_over_cross(state){
+                state.status = LOSS;
+                state.mode = Mode::EndGame;
+            } else if tie(state){
+                state.status = TIE;
                 state.mode = Mode::EndGame;
             }
             
@@ -448,11 +496,11 @@ fn update_game(
 
         Mode::EndGame => {
             state.sprites[0].position.1 += 1;
-            state.sprites[0].position.0 += 1;
+            
             state.sprites[1].position.1 -= 1;
-            state.sprites[1].position.0 += 1;
+            
             if input.key_held(VirtualKeyCode::Return) {
-                ResetGame(state);
+                reset_game(state);
                 state.mode = Mode::GamePlay;
             }
         }
@@ -465,7 +513,7 @@ fn update_game(
 
     // Update game rules: What happens when the player touches things?
 }
-pub fn saveGame(state: &mut GameState) -> std::io::Result<()>{
+pub fn save_game(state: &mut GameState) -> std::io::Result<()>{
     let serialized = serde_json::to_string(&state.model).unwrap();
     fs::write("saved.txt", serialized);
 
@@ -476,7 +524,7 @@ pub fn saveGame(state: &mut GameState) -> std::io::Result<()>{
     println!("{}", contents);
     Ok(())
 }
-pub fn loadGame(state: &mut GameState) -> std::io::Result<()>{
+pub fn load_game(state: &mut GameState) -> std::io::Result<()>{
     if Path::new("saved.txt").exists(){
         let file = File::open("saved.txt")?;
         let mut buf_reader = BufReader::new(file);
@@ -489,7 +537,7 @@ pub fn loadGame(state: &mut GameState) -> std::io::Result<()>{
     Ok(())
     
 }
-pub fn gameOverCircle(state: &mut GameState) -> bool {
+pub fn game_over_circle(state: &mut GameState) -> bool {
     //circle
     if (state.model[0][0] == CIRCLE && state.model[0][1] == CIRCLE && state.model[0][2] == CIRCLE) {
         return true;
@@ -531,7 +579,7 @@ pub fn gameOverCircle(state: &mut GameState) -> bool {
     }
     return false;
 }
-pub fn gameOverCross(state: &mut GameState) -> bool {
+pub fn game_over_cross(state: &mut GameState) -> bool {
     //circle
     if (state.model[0][0] == CROSS && state.model[0][1] == CROSS && state.model[0][2] == CROSS) {
         return true;
@@ -591,7 +639,7 @@ pub fn tie(state: &mut GameState) -> bool {
     
 }
 
-pub fn ResetGame(state: &mut GameState) {
+pub fn reset_game(state: &mut GameState) {
     for i in 0..3 {
         for j in 0..3 {
             state.model[i][j] = EMPTY;
