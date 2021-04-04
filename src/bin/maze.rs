@@ -1,4 +1,4 @@
-use crate::types::{Rect, Rgba, Vec2i};
+use engine2d::types::{Rect, Rgba, Vec2i};
 use pixels::{Pixels, SurfaceTexture};
 use std::rc::Rc;
 use rodio::{Source, Sink};
@@ -14,33 +14,25 @@ use winit_input_helper::WinitInputHelper;
 
 // Whoa what's this?
 // Mod without brackets looks for a nearby file.
-mod screen;
 // Then we can use as usual.  The screen module will have drawing utilities.
-use screen::Screen;
+use engine2d::screen::*;
 
-mod resources;
-use resources::Resources;
+use engine2d::resources::Resources;
 
-mod tiles;
-use tiles::{Tile, Tilemap, Tileset};
+
 // Lazy glob imports
 //use collision::*;
 // Texture has our image loading and processing stuff
-mod texture;
-use texture::Texture;
+use engine2d::texture::Texture;
 // Animation will define our animation datatypes and blending or whatever
-mod animation;
-use animation::Animation;
+use engine2d::animation::Animation;
 // Sprite will define our movable sprites
-mod sprite;
 // Lazy glob import, see the extension trait business later for why
-use sprite::*;
+use engine2d::sprite::*;
 // And we'll put our general purpose types like color and geometry here:
-mod types;
-use types::*;
+use engine2d::types::*;
+use engine2d::collision::{rect_touching, Mobile, Wall};
 
-mod collision;
-use collision::{rect_touching, Mobile, Wall};
 type Color = [u8; DEPTH];
 
 const CLEAR_COL: Color = [32, 32, 64, 255];
@@ -52,7 +44,7 @@ const ARROW_COL: Color = [0, 255, 0, 255];
 
 struct Level {
     gamemap: Vec<Wall>,
-    exit: collision::Rect,
+    exit: engine2d::collision::Rect,
     position: Vec2i,
 }
 
@@ -97,8 +89,8 @@ fn main() {
     //(3.0) license. http://dig.ccmixter.org/files/Karstenholymoly/62493 Ft: Platinum Butterfly
     
     let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-    let file = File::open("levelOne.mp3").unwrap();
-    let gameover_file = File::open("gameover.wav").unwrap();
+    let file = File::open("content/levelOne.mp3").unwrap();
+    let gameover_file = File::open("content/gameover.wav").unwrap();
     let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
     let gameover_source = rodio::Decoder::new(BufReader::new(gameover_file)).unwrap();
     stream_handle.play_raw(source.convert_samples());
@@ -106,10 +98,10 @@ fn main() {
 
 
     let mut rsrc = Resources::new();
-    let startscreen_tex = rsrc.load_texture(Path::new("start.png"));
-    let endscreen_tex = rsrc.load_texture(Path::new("end.jpg"));
+    let startscreen_tex = rsrc.load_texture(Path::new("content/start.png"));
+    let endscreen_tex = rsrc.load_texture(Path::new("content/end.jpg"));
 
-    let tex = Rc::new(Texture::with_file(Path::new("king.png")));
+    let tex = Rc::new(Texture::with_file(Path::new("content/king.png")));
     let frame1 = Rect {
         x: 0,
         y: 16,
@@ -127,7 +119,7 @@ fn main() {
     let walls1: Vec<Wall> = vec![
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -136,7 +128,7 @@ fn main() {
         },
         //left wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: 150,
@@ -145,7 +137,7 @@ fn main() {
         },
         //right wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 / 3 * 2,
                 y: 0,
                 w: WIDTH as u16 / 3,
@@ -154,7 +146,7 @@ fn main() {
         },
         //bottom wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: HEIGHT as i32 - 16,
                 w: WIDTH as u16,
@@ -163,7 +155,7 @@ fn main() {
         },
         //square wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 / 2,
                 y: HEIGHT as i32 / 2,
                 w: 150,
@@ -174,7 +166,7 @@ fn main() {
     let walls4: Vec<Wall> = vec![
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -185,7 +177,7 @@ fn main() {
     let walls2: Vec<Wall> = vec![
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -194,7 +186,7 @@ fn main() {
         },
         //left wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: 90,
@@ -203,7 +195,7 @@ fn main() {
         },
         //right wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 - 26,
                 y: 0,
                 w: 90,
@@ -212,7 +204,7 @@ fn main() {
         },
         //bottom wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: HEIGHT as i32 - 30,
                 w: WIDTH as u16,
@@ -221,7 +213,7 @@ fn main() {
         },
         //first quarter wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 220,
                 y: 90,
                 w: WIDTH as u16,
@@ -230,7 +222,7 @@ fn main() {
         },
         //second quarter wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 240,
                 w: WIDTH as u16 - 90,
@@ -239,7 +231,7 @@ fn main() {
         },
         //third quarter wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 220,
                 y: 390,
                 w: WIDTH as u16,
@@ -250,7 +242,7 @@ fn main() {
     let walls3: Vec<Wall> = vec![
         //bottom wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: HEIGHT as i32 - 50,
                 w: WIDTH as u16,
@@ -259,7 +251,7 @@ fn main() {
         },
         //right wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 - 150,
                 y: 0,
                 w: 150,
@@ -268,7 +260,7 @@ fn main() {
         },
         //left wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: 100,
@@ -277,7 +269,7 @@ fn main() {
         },
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -286,7 +278,7 @@ fn main() {
         },
         //w1
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100,
                 y: HEIGHT as i32 - 150,
                 w: WIDTH as u16 / 3 + 150,
@@ -295,7 +287,7 @@ fn main() {
         },
         //w2
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100 + 50,
                 y: HEIGHT as i32 - 350,
                 w: WIDTH as u16 / 3 + 200,
@@ -304,7 +296,7 @@ fn main() {
         },
         //w3
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100,
                 y: 50,
                 w: WIDTH as u16 / 3,
@@ -313,7 +305,7 @@ fn main() {
         },
         //w4
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100 + WIDTH as i32 / 3,
                 y: HEIGHT as i32 - 375,
                 w: WIDTH as u16 / 3 + 100,
@@ -322,7 +314,7 @@ fn main() {
         },
         //w5
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 / 3 * 2 - 50,
                 y: 50,
                 w: WIDTH as u16 / 3 + 50,
@@ -331,7 +323,7 @@ fn main() {
         },
         //w6
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100 + WIDTH as i32 / 3,
                 y: 125,
                 w: 50,
@@ -340,7 +332,7 @@ fn main() {
         },
         //w7
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 130 + WIDTH as i32 / 3,
                 y: 93,
                 w: 60,
@@ -349,7 +341,7 @@ fn main() {
         },
         //w8
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 100 + WIDTH as i32 / 3,
                 y: 50,
                 w: 40,
@@ -378,7 +370,7 @@ fn main() {
 
     let level = Level {
         gamemap: walls1,
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: WIDTH as i32 / 2 + 50,
             y: 100,
             w: 68,
@@ -388,7 +380,7 @@ fn main() {
     };
     let level2 = Level {
         gamemap: walls2,
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: WIDTH as i32 - 50,
             y: 460,
             w: 30,
@@ -399,7 +391,7 @@ fn main() {
     let level3 = Level {
         gamemap: walls3,
         //need to correct exit
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: 373,
             y: 50,
             w: 43,
@@ -410,7 +402,7 @@ fn main() {
     let level4 = Level {
         gamemap: walls4,
         //need to correct exit
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: 373,
             y: 50,
             w: 43,
@@ -422,7 +414,7 @@ fn main() {
     let mut state = GameState {
         // initial game state...
         player: Mobile {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 170,
                 y: 500,
                 w: 11,
@@ -453,7 +445,7 @@ fn main() {
         if let Event::RedrawRequested(_) = event {
             let fb = pixels.get_frame();
 
-            collision::clear(fb, CLEAR_COL);
+            engine2d::collision::clear(fb, CLEAR_COL);
 
             match state.mode {
                 Mode::TitleScreen => {
@@ -471,16 +463,16 @@ fn main() {
                 Mode::GamePlay => {  
                     //Draw the walls
                     for w in state.levels[state.current_level].gamemap.iter() {
-                        collision::rect(fb, w.rect, WALL_COL);
+                        engine2d::collision::rect(fb, w.rect, WALL_COL);
                     }
 
                     //draw the exit
-                    collision::rect(fb, state.levels[state.current_level].exit, NEXT_COL);
+                    engine2d::collision::rect(fb, state.levels[state.current_level].exit, NEXT_COL);
                     // Draw the player
-                    collision::frameRect(fb, state.player.rect, PLAYER_COL);
+                    engine2d::collision::frameRect(fb, state.player.rect, PLAYER_COL);
                     if (state.current_level != 2) {
                         // Draw the triangle
-                        collision::triangle(
+                        engine2d::collision::triangle(
                             fb,
                             (
                                 state.levels[state.current_level].exit.x as usize,
@@ -523,7 +515,7 @@ fn main() {
             available_time += since.elapsed().as_secs_f64();
         }
         // Handle input events
-        if input.update(event) {
+        if input.update(&event) {
             // Close events
             if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
                 *control_flow = ControlFlow::Exit;
@@ -582,7 +574,7 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
 
             // Detect collisions: Generate contacts
             for w in state.levels[state.current_level].gamemap.iter() {
-                if collision::rect_touching(state.player.rect, w.rect) {
+                if engine2d::collision::rect_touching(state.player.rect, w.rect) {
                     state.current_level = level_index;
                     state.player.rect.x = state.levels[state.current_level].position.0;
                     state.player.rect.y = state.levels[state.current_level].position.1;
@@ -592,7 +584,7 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
                 }
             }
  
-            if collision::rect_touching(state.player.rect, state.levels[state.current_level].exit) {
+            if engine2d::collision::rect_touching(state.player.rect, state.levels[state.current_level].exit) {
                 //change level here
                 level_index += 1;
                 state.current_level = level_index;

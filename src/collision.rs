@@ -13,6 +13,8 @@ const DEPTH: usize = 4;
 const WIDTH: usize = 700;
 const HEIGHT: usize = 550;
 const PITCH: usize = WIDTH * DEPTH;
+const CIRCLE_RADIUS: i16 = 24;
+
 
 // We'll make our Color type an RGBA8888 pixel.
 type Color = [u8; DEPTH];

@@ -7,14 +7,14 @@ use winit::event_loop::{ControlFlow, EventLoop};
 use winit_input_helper::WinitInputHelper;
 pub mod types;
 use types::{Rgba, Vec2i};
-pub mod graphics;
-use graphics::Screen;
 pub mod resources;
 use resources::Resources;
 pub mod animation;
+pub mod screen;
+use screen::Screen;
 pub mod collision;
 pub mod texture;
-pub mod tiles;
+pub mod sprite;
 
 const DEPTH: usize = 4;
 const DT: f64 = 1.0 / 60.0;

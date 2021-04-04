@@ -1,4 +1,4 @@
-use crate::types::{Rect, Rgba, Vec2i};
+use engine2d::types::{Rect, Rgba, Vec2i};
 use pixels::{Pixels, SurfaceTexture};
 use rand::seq::SliceRandom;
 use rand::{thread_rng, Rng};
@@ -19,32 +19,23 @@ use winit_input_helper::WinitInputHelper; // 0.7.2
 
 // Whoa what's this?
 // Mod without brackets looks for a nearby file.
-mod screen;
 // Then we can use as usual.  The screen module will have drawing utilities.
-use screen::Screen;
+use engine2d::screen::Screen;
 
-mod resources;
-use resources::Resources;
+use engine2d::resources::Resources;
 
-mod tiles;
-use tiles::{Tile, Tilemap, Tileset};
 // Lazy glob imports
 //use collision::*;
 // Texture has our image loading and processing stuff
-mod texture;
-use texture::Texture;
+use engine2d::texture::Texture;
 // Animation will define our animation datatypes and blending or whatever
-mod animation;
-use animation::Animation;
+use engine2d::animation::Animation;
 // Sprite will define our movable sprites
-mod sprite;
 // Lazy glob import, see the extension trait business later for why
-use sprite::*;
+use engine2d::sprite::*;
 // And we'll put our general purpose types like color and geometry here:
-mod types;
-use types::*;
-mod collision;
-use collision::{rect_touching, Mobile, Wall};
+use engine2d::types::*;
+use engine2d::collision::{rect_touching, Mobile, Wall};
 type Color = [u8; DEPTH];
 
 const CLEAR_COL: Color = [32, 32, 64, 255];
@@ -59,7 +50,7 @@ const CROSS: usize = 2;
 
 struct Level {
     gamemap: Vec<Wall>,
-    exit: collision::Rect,
+    exit: engine2d::collision::Rect,
     position: Vec2i,
 }
 
@@ -101,14 +92,14 @@ enum Mode {
 
 fn main() {
     let mut rsrc = Resources::new();
-    let startscreen_tex = rsrc.load_texture(Path::new("start.png"));
-    let confetti = rsrc.load_texture(Path::new("confetti2.jpeg"));
-    let confetti2 = rsrc.load_texture(Path::new("confetti1.jpeg"));
+    let startscreen_tex = rsrc.load_texture(Path::new("content/start.png"));
+    let confetti = rsrc.load_texture(Path::new("content/confetti2.jpeg"));
+    let confetti2 = rsrc.load_texture(Path::new("content/confetti1.jpeg"));
     
     
     
 
-    let tex = Rc::new(Texture::with_file(Path::new("king.png")));
+    let tex = Rc::new(Texture::with_file(Path::new("content/king.png")));
     let frame1 = Rect {
         x: 0,
         y: 16,
@@ -126,7 +117,7 @@ fn main() {
     let walls1: Vec<Wall> = vec![
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -135,7 +126,7 @@ fn main() {
         },
         //left wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: 150,
@@ -144,7 +135,7 @@ fn main() {
         },
         //right wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 / 3 * 2,
                 y: 0,
                 w: WIDTH as u16 / 3,
@@ -153,7 +144,7 @@ fn main() {
         },
         //bottom wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: HEIGHT as i32 - 16,
                 w: WIDTH as u16,
@@ -162,7 +153,7 @@ fn main() {
         },
         //square wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: WIDTH as i32 / 2,
                 y: HEIGHT as i32 / 2,
                 w: 150,
@@ -173,7 +164,7 @@ fn main() {
     let walls4: Vec<Wall> = vec![
         //top wall
         Wall {
-            rect: collision::Rect {
+            rect: engine2d::collision::Rect {
                 x: 0,
                 y: 0,
                 w: WIDTH as u16,
@@ -202,7 +193,7 @@ fn main() {
 
     let level = Level {
         gamemap: walls1,
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: WIDTH as i32 / 2 + 50,
             y: 100,
             w: 68,
@@ -214,7 +205,7 @@ fn main() {
     let level4 = Level {
         gamemap: walls4,
         //need to correct exit
-        exit: collision::Rect {
+        exit: engine2d::collision::Rect {
             x: 373,
             y: 50,
             w: 43,
@@ -259,7 +250,7 @@ fn main() {
         if let Event::RedrawRequested(_) = event {
             let fb = pixels.get_frame();
 
-            collision::clear(fb, CLEAR_COL);
+            engine2d::collision::clear(fb, CLEAR_COL);
 
             match state.mode {
                 Mode::TitleScreen => {
@@ -277,7 +268,7 @@ fn main() {
                 Mode::GamePlay => {
                     //Draw the grid
                     //collision::gameLayout(pixels.get_frame(), GRID_X, GRID_Y, GRID_LENGTH, WALL_COL);
-                    collision::gameLayout(pixels.get_frame(), WIDTH, HEIGHT, GRID_LENGTH, WALL_COL);
+                    engine2d::collision::gameLayout(pixels.get_frame(), WIDTH, HEIGHT, GRID_LENGTH, WALL_COL);
 
                     //collision::line(pixels.get_frame(), (GRID_X  + (GRID_LENGTH/3) , 0), (GRID_X  + (GRID_LENGTH/3) , 300), WALL_COL   );
                     //Draw a cross
@@ -290,12 +281,12 @@ fn main() {
                                 let center_x = (i * WIDTH / 3 + WIDTH / 6) as f32;
                                 let center_y = (j * HEIGHT / 3 + HEIGHT / 6) as f32;
 
-                                collision::circle(pixels.get_frame(), center_x, center_y);
+                                engine2d::collision::circle(pixels.get_frame(), center_x, center_y);
                             } else if state.model[i][j] == CROSS {
                                 let cross_x = (i * WIDTH / 3 + 75);
                                 let cross_y = (j * HEIGHT / 3 + 50);
 
-                                collision::cross(
+                                engine2d::collision::cross(
                                     pixels.get_frame(),
                                     cross_x,
                                     cross_y,
@@ -338,7 +329,7 @@ fn main() {
             available_time += since.elapsed().as_secs_f64();
         }
         // Handle input events
-        if input.update(event) {
+        if input.update(&event) {
             // Close events
             if input.key_pressed(VirtualKeyCode::Escape) || input.quit() {
                 *control_flow = ControlFlow::Exit;
