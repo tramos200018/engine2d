@@ -520,7 +520,6 @@ pub fn save_game(state: &mut GameState) -> std::io::Result<()>{
     let mut buf_reader = BufReader::new(file);
     let mut contents = String::new();
     buf_reader.read_to_string(&mut contents)?;
-    println!("{}", contents);
     Ok(())
 }
 pub fn load_game(state: &mut GameState) -> std::io::Result<()>{
