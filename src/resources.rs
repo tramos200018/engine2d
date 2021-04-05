@@ -10,4 +10,5 @@ impl Resources {
     pub fn load_texture(&self, p: impl AsRef<Path>) -> Rc<Texture> {
         Rc::new(Texture::with_file(p.as_ref()))
     }
+    
 }

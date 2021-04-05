@@ -5,6 +5,7 @@ use rand::{thread_rng, Rng};
 use std::{fs::{self, File}, path::Path, rc::Rc};
 use std::io::BufReader;
 use std::io::prelude::*;
+use rodio::{Sink};
 use std::time::Instant;
 use std::{borrow::Borrow, os::macos::raw::stat, task::RawWakerVTable};
 use winit::event_loop::{ControlFlow, EventLoop};
@@ -73,6 +74,8 @@ pub struct GameState {
     model: Vec<Vec<usize>>,
     mouse_down: bool,
     status: usize,
+    sink: Sink,
+    sink_effects: Sink
 }
 // seconds per frame
 const DT: f64 = 1.0 / 60.0;
@@ -94,6 +97,11 @@ enum Mode {
 }
 
 fn main() {
+    //audio
+    let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
+    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+    let sink_effects = rodio::Sink::try_new(&stream_handle).unwrap();
+
     let rsrc = Resources::new();
     let startscreen_tex = rsrc.load_texture(Path::new("content/startTic.png"));
     let confetti = rsrc.load_texture(Path::new("content/confetti2.jpeg"));
@@ -236,6 +244,8 @@ fn main() {
         ],
         mouse_down: false,
         status: TIE,
+        sink: sink,
+        sink_effects: sink_effects
     };
 
     // How many frames have we simulated?
@@ -433,6 +443,8 @@ fn update_game(
 
             // Player control goes here
             if mouse_rel{
+                state.sink_effects.append(rodio::Decoder::new(BufReader::new(File::open("content/click.wav").unwrap())).unwrap());
+
                 if let Some((mouse_x, mouse_y)) = input.mouse().and_then(|mp| pixels.window_pos_to_pixel(mp).ok()) {
                         input_x = (mouse_x / (WIDTH/3)) as f32;
                         input_y = (mouse_y/ (HEIGHT/3)) as f32;
@@ -482,6 +494,7 @@ fn update_game(
 
             
             if game_over_circle(state){
+                state.sink_effects.append(rodio::Decoder::new(BufReader::new(File::open("content/gamewon.mp3").unwrap())).unwrap());
                 state.status = WIN;
                 state.mode = Mode::EndGame;
             }else if game_over_cross(state){

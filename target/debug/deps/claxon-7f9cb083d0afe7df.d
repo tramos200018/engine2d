@@ -1,0 +1,11 @@
+/Users/abdulbasitajeigbe/cs181g/engine2d/target/debug/deps/claxon-7f9cb083d0afe7df.rmeta: /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/lib.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/crc.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/error.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/frame.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/input.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/metadata.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/subframe.rs
+
+/Users/abdulbasitajeigbe/cs181g/engine2d/target/debug/deps/claxon-7f9cb083d0afe7df.d: /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/lib.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/crc.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/error.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/frame.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/input.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/metadata.rs /Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/subframe.rs
+
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/lib.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/crc.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/error.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/frame.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/input.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/metadata.rs:
+/Users/abdulbasitajeigbe/.cargo/registry/src/github.com-1ecc6299db9ec823/claxon-0.4.3/src/subframe.rs:

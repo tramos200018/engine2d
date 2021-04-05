@@ -1,7 +1,7 @@
 use engine2d::types::{Rect, Rgba, Vec2i};
 use pixels::{Pixels, SurfaceTexture};
 use std::rc::Rc;
-use rodio::{Source, Sink};
+use rodio::{Sink};
 use std::io::{Write, stdout, BufReader};
 use std::fs::File;
 use std::time::Instant;
@@ -66,6 +66,8 @@ struct GameState {
     levels: Vec<Level>,
     current_level: usize,
     mode: Mode,
+    sink: Sink,
+    sink_effects: Sink
 }
 
 // seconds per frame
@@ -89,12 +91,8 @@ fn main() {
     //(3.0) license. http://dig.ccmixter.org/files/Karstenholymoly/62493 Ft: Platinum Butterfly
     
     let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
-    let file = File::open("content/levelOne.mp3").unwrap();
-    let gameover_file = File::open("content/gameover.wav").unwrap();
-    let source = rodio::Decoder::new(BufReader::new(file)).unwrap();
-    let gameover_source = rodio::Decoder::new(BufReader::new(gameover_file)).unwrap();
-    stream_handle.play_raw(source.convert_samples());
-    //stream_handle.play_raw(gameover_source.convert_samples());
+    let sink = rodio::Sink::try_new(&stream_handle).unwrap();
+    let sink_effects = rodio::Sink::try_new(&stream_handle).unwrap();
 
 
     let mut rsrc = Resources::new();
@@ -429,6 +427,8 @@ fn main() {
         animations: vec![],
         sprites: vec![Sprite::new(&tex, &anim, frame1, 0, Vec2i(170, 500))],
         textures: vec![tex],
+        sink: sink,
+        sink_effects: sink_effects
     };
     
 
@@ -461,6 +461,9 @@ fn main() {
                     )
                 }
                 Mode::GamePlay => {  
+                    state.sink.append(rodio::Decoder::new(BufReader::new(File::open("content/levelOne.mp3").unwrap())).unwrap());
+                    //state.stream.1.play_raw(rodio::Decoder::new(BufReader::new(File::open("content/levelOne.mp3").unwrap())).unwrap().convert_samples());
+
                     //Draw the walls
                     for w in state.levels[state.current_level].gamemap.iter() {
                         engine2d::collision::rect(fb, w.rect, WALL_COL);
@@ -554,6 +557,7 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
             }
         }
         Mode::GamePlay => {
+
             // Player control goes here
             if input.key_held(VirtualKeyCode::Right) {
                 state.player.rect.x += 1;
@@ -575,6 +579,8 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
             // Detect collisions: Generate contacts
             for w in state.levels[state.current_level].gamemap.iter() {
                 if engine2d::collision::rect_touching(state.player.rect, w.rect) {
+                    state.sink_effects.append(rodio::Decoder::new(BufReader::new(File::open("content/gameover.wav").unwrap())).unwrap());
+
                     state.current_level = level_index;
                     state.player.rect.x = state.levels[state.current_level].position.0;
                     state.player.rect.y = state.levels[state.current_level].position.1;
@@ -593,6 +599,8 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
                 state.sprites[0].position.0 = state.player.rect.x;
                 state.sprites[0].position.1 = state.player.rect.y;
                 if (level_index == 3) {
+                    state.sink.stop();
+                    state.sink_effects.append(rodio::Decoder::new(BufReader::new(File::open("content/gamewon.mp3").unwrap())).unwrap());
                     state.mode = Mode::EndGame;
                 }
             }
