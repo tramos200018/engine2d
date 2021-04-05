@@ -47,12 +47,6 @@ struct Level {
     exit: engine2d::collision::Rect,
     position: Vec2i,
 }
-
-/*
-struct Sound{
-    stream: (rodio::OutputStream, rodio::OutputStreamHandle),
-    source: rodio::Decoder<BufReader<File>>,
-}*/
 // Now this main module is just for the run-loop and rules processing.
 struct GameState {
     // What data do we need for this game?  Wall positions?
@@ -95,7 +89,7 @@ fn main() {
     let sink_effects = rodio::Sink::try_new(&stream_handle).unwrap();
 
 
-    let mut rsrc = Resources::new();
+    let rsrc = Resources::new();
     let startscreen_tex = rsrc.load_texture(Path::new("content/start.png"));
     let endscreen_tex = rsrc.load_texture(Path::new("content/end.jpg"));
 
@@ -112,7 +106,7 @@ fn main() {
         w: 16,
         h: 16,
     };
-    let mut anim = Rc::new(Animation::new(vec![frame1, frame2]));
+    let anim = Rc::new(Animation::new(vec![frame1, frame2]));
 
     let walls1: Vec<Wall> = vec![
         //top wall
@@ -462,8 +456,6 @@ fn main() {
                 }
                 Mode::GamePlay => {  
                     state.sink.append(rodio::Decoder::new(BufReader::new(File::open("content/levelOne.mp3").unwrap())).unwrap());
-                    //state.stream.1.play_raw(rodio::Decoder::new(BufReader::new(File::open("content/levelOne.mp3").unwrap())).unwrap().convert_samples());
-
                     //Draw the walls
                     for w in state.levels[state.current_level].gamemap.iter() {
                         engine2d::collision::rect(fb, w.rect, WALL_COL);
@@ -598,7 +590,7 @@ fn update_game(state: &mut GameState, input: &WinitInputHelper, frame: usize) {
                 state.player.rect.y = state.levels[state.current_level].position.1;
                 state.sprites[0].position.0 = state.player.rect.x;
                 state.sprites[0].position.1 = state.player.rect.y;
-                if (level_index == 3) {
+                if level_index == 3 {
                     state.sink.stop();
                     state.sink_effects.append(rodio::Decoder::new(BufReader::new(File::open("content/gamewon.mp3").unwrap())).unwrap());
                     state.mode = Mode::EndGame;

@@ -105,8 +105,8 @@ fn main() {
 
     let rsrc = Resources::new();
     let startscreen_tex = rsrc.load_texture(Path::new("content/startTic.png"));
-    let confetti = rsrc.load_texture(Path::new("content/confetti2.jpeg"));
-    let confetti2 = rsrc.load_texture(Path::new("content/confetti1.jpeg"));
+    let confetti = rsrc.load_texture(Path::new("content/confettiTransparent.png"));
+    let confetti2 = rsrc.load_texture(Path::new("content/confetti2.png"));
 
     let win_tex = rsrc.load_texture(Path::new("content/win.png"));
     let loss_tex = rsrc.load_texture(Path::new("content/loss.png"));
@@ -257,11 +257,6 @@ fn main() {
     let start = Instant::now();
     // Track end of the last frame
     let mut since = Instant::now();
-    /*let mut model: Vec<Vec<usize>> = vec![
-        vec![EMPTY, EMPTY, EMPTY],
-        vec![EMPTY, EMPTY, EMPTY],
-        vec![EMPTY, EMPTY, EMPTY]
-    ];*/
 
     
     event_loop.run(move |event, _, control_flow| {
@@ -288,12 +283,9 @@ fn main() {
                 }
                 Mode::GamePlay => {
                     //Draw the grid
-                    //collision::gameLayout(pixels.get_frame(), GRID_X, GRID_Y, GRID_LENGTH, WALL_COL);
                     engine2d::collision::gameLayout(pixels.get_frame(), WIDTH, HEIGHT, GRID_LENGTH, WALL_COL);
 
-                    //collision::line(pixels.get_frame(), (GRID_X  + (GRID_LENGTH/3) , 0), (GRID_X  + (GRID_LENGTH/3) , 300), WALL_COL   );
                     //Draw a cross
-                    //collision::cross(pixels.get_frame(), 300, 350, 50, WALL_COL);
 
                     //TODO: for loop that goes through model and draws all the circles and crosses
                     for i in 0..3 {
@@ -319,14 +311,7 @@ fn main() {
                     }
 
                     window.request_redraw();
-                    /*
-                    if circle_x > 0.0 && circle_y > 0.0{
-                        collision::draw(pixels.get_frame(), circle_x, circle_y);
-                        window.request_redraw();
-
-                    }*/
-
-                    
+             
                 }
                 Mode::EndGame => {
 
@@ -336,7 +321,7 @@ fn main() {
                         
                         screen.draw_sprite(s);
                     }
-                    if (state.status == WIN){
+                    if state.status == WIN{
                         Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
                             &win_tex,
                             Rect {
@@ -347,7 +332,7 @@ fn main() {
                             },
                             Vec2i(0, 0),
                         )
-                    } else if (state.status == LOSS){
+                    } else if state.status == LOSS{
                         Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
                             &loss_tex,
                             Rect {
@@ -358,7 +343,7 @@ fn main() {
                             },
                             Vec2i(0, 0),
                         )
-                    }else if (state.status == TIE){
+                    }else if state.status == TIE{
                         Screen::wrap(pixels.get_frame(), WIDTH, HEIGHT, DEPTH, Vec2i(0, 0)).bitblt(
                             &tie_tex,
                             Rect {
