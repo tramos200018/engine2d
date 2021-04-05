@@ -98,6 +98,7 @@ enum Mode {
 
 fn main() {
     //audio
+    //sound from https://mixkit.co/free-sound-effects/click/
     let (stream, stream_handle) = rodio::OutputStream::try_default().unwrap();
     let sink = rodio::Sink::try_new(&stream_handle).unwrap();
     let sink_effects = rodio::Sink::try_new(&stream_handle).unwrap();
